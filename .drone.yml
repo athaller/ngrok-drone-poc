@@ -1,0 +1,27 @@
+---
+kind: pipeline
+name: ngrok POC test
+
+workspace:
+  base: /usr/share/nginx
+  path: html
+
+steps:
+  - name: nginx
+    image: nginx
+    commands:
+      - echo "Hello from Drone Container!!" > index.html
+      - hostname >> index.html
+      - nginx > /dev/null &
+      - sleep 300
+
+services:
+  - name: ngrok
+    image: wernight/ngrok
+    commands:
+      - ngrok http nginx:80 > /dev/null &
+      - sleep 3
+      - curl -sS 'http://localhost:4040/api/tunnels' | sed 's/.*"public_url":"\(.*\)","prot.*/\1/g'
+      - sleep 300
+
+
